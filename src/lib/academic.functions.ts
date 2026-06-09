@@ -25,7 +25,7 @@ export const listAcademicYears = createServerFn({ method: "POST" })
       .eq("school_id", data.school_id)
       .order("start_date", { ascending: false });
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertAcademicYear = createServerFn({ method: "POST" })
@@ -75,7 +75,7 @@ export const listTerms = createServerFn({ method: "POST" })
       .eq("academic_year_id", data.academic_year_id)
       .order("ordinal");
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertTerm = createServerFn({ method: "POST" })
@@ -123,7 +123,7 @@ export const listSubjects = createServerFn({ method: "POST" })
     const { data: rows, error } = await context.supabase
       .from("subjects").select("*").eq("school_id", data.school_id).order("name");
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertSubject = createServerFn({ method: "POST" })
@@ -168,7 +168,7 @@ export const listStaff = createServerFn({ method: "POST" })
     const { data: rows, error } = await context.supabase
       .from("staff").select("*").eq("school_id", data.school_id).order("full_name");
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertStaff = createServerFn({ method: "POST" })
@@ -226,7 +226,7 @@ export const listClasses = createServerFn({ method: "POST" })
     if (data.academic_year_id) q = q.eq("academic_year_id", data.academic_year_id);
     const { data: rows, error } = await q.order("grade_level").order("name");
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertClass = createServerFn({ method: "POST" })
@@ -274,7 +274,7 @@ export const listClassSubjects = createServerFn({ method: "POST" })
       .select("*, subjects(id, code, name, kkm), staff:teacher_id(id, full_name)")
       .eq("class_id", data.class_id);
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertClassSubject = createServerFn({ method: "POST" })
@@ -319,7 +319,7 @@ export const listSchedules = createServerFn({ method: "POST" })
       .eq("class_subjects.class_id", data.class_id)
       .order("day_of_week").order("start_time");
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertSchedule = createServerFn({ method: "POST" })
@@ -365,7 +365,7 @@ export const listStudents = createServerFn({ method: "POST" })
       .eq("school_id", data.school_id)
       .order("full_name");
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const getStudent = createServerFn({ method: "POST" })
