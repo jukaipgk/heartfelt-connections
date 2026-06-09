@@ -66,9 +66,17 @@ function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Selamat datang{user?.profile?.full_name ? `, ${user.profile.full_name}` : ""}
-        </h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Selamat datang{user?.profile?.full_name ? `, ${user.profile.full_name}` : ""}
+          </h1>
+          {schoolId && (
+            <Badge variant={live ? "default" : "outline"} className="gap-1">
+              <Radio className={`h-3 w-3 ${live ? "animate-pulse" : ""}`} />
+              {live ? "Live" : "Offline"}
+            </Badge>
+          )}
+        </div>
         <p className="text-muted-foreground mt-1">
           Ringkasan operasional Sistem Informasi Manajemen At-Tauhid (SIMAT).
         </p>
