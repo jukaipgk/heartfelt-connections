@@ -35,11 +35,11 @@ export const getCurrentUser = createServerFn({ method: "GET" })
 
     const [{ data: profile }, { data: roleRows }] = await Promise.all([
       supabase
-        .from("profiles" as any)
+        .from("profiles")
         .select("full_name, avatar_url, phone, foundation_id, email")
         .eq("id", userId)
         .maybeSingle(),
-      supabase.from("user_roles" as any).select("role").eq("user_id", userId),
+      (supabase as any).from("user_roles").select("role").eq("user_id", userId),
     ]);
 
     const roles = Array.from(
