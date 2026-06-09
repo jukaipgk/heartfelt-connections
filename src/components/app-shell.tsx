@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { UserMenu } from "@/components/user-menu";
+import { SchoolContextSelector } from "@/components/school-context-selector";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -9,14 +10,17 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center justify-between border-b bg-card px-4 sticky top-0 z-30">
-            <div className="flex items-center gap-2">
+          <header className="h-14 flex items-center justify-between border-b bg-card px-4 sticky top-0 z-30 gap-3">
+            <div className="flex items-center gap-2 min-w-0">
               <SidebarTrigger />
-              <span className="font-semibold text-sm hidden md:inline">
+              <span className="font-semibold text-sm hidden md:inline truncate">
                 SIMAT — Sistem Informasi Manajemen At-Tauhid
               </span>
             </div>
-            <UserMenu />
+            <div className="flex items-center gap-3">
+              <SchoolContextSelector />
+              <UserMenu />
+            </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">{children}</main>
         </div>
@@ -24,3 +28,4 @@ export function AppShell({ children }: { children: ReactNode }) {
     </SidebarProvider>
   );
 }
+
