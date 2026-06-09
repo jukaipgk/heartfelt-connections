@@ -19,7 +19,7 @@ export const listAcademicYears = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ school_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("academic_years")
+      .from("academic_years" as any)
       .select("*")
       .eq("school_id", data.school_id)
       .order("start_date", { ascending: false });
@@ -41,15 +41,15 @@ export const upsertAcademicYear = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (data.is_active) {
-      await context.supabase.from("academic_years")
+      await context.supabase.from("academic_years" as any)
         .update({ is_active: false }).eq("school_id", data.school_id);
     }
     const payload = { ...data };
     if (data.id) {
-      const { error } = await context.supabase.from("academic_years").update(payload).eq("id", data.id);
+      const { error } = await context.supabase.from("academic_years" as any).update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("academic_years").insert(payload);
+      const { error } = await context.supabase.from("academic_years" as any).insert(payload);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -59,7 +59,7 @@ export const deleteAcademicYear = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("academic_years").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("academic_years" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -70,7 +70,7 @@ export const listTerms = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ academic_year_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("academic_terms").select("*")
+      .from("academic_terms" as any).select("*")
       .eq("academic_year_id", data.academic_year_id)
       .order("ordinal");
     if (error) throw new Error(error.message);
@@ -92,14 +92,14 @@ export const upsertTerm = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (data.is_active) {
-      await context.supabase.from("academic_terms")
+      await context.supabase.from("academic_terms" as any)
         .update({ is_active: false }).eq("academic_year_id", data.academic_year_id);
     }
     if (data.id) {
-      const { error } = await context.supabase.from("academic_terms").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("academic_terms" as any).update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("academic_terms").insert(data);
+      const { error } = await context.supabase.from("academic_terms" as any).insert(data);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -109,7 +109,7 @@ export const deleteTerm = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("academic_terms").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("academic_terms" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -120,7 +120,7 @@ export const listSubjects = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ school_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("subjects").select("*").eq("school_id", data.school_id).order("name");
+      .from("subjects" as any).select("*").eq("school_id", data.school_id).order("name");
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
@@ -141,10 +141,10 @@ export const upsertSubject = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (data.id) {
-      const { error } = await context.supabase.from("subjects").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("subjects" as any).update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("subjects").insert(data);
+      const { error } = await context.supabase.from("subjects" as any).insert(data);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -154,7 +154,7 @@ export const deleteSubject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("subjects").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("subjects" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -165,7 +165,7 @@ export const listStaff = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ school_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("staff").select("*").eq("school_id", data.school_id).order("full_name");
+      .from("staff" as any).select("*").eq("school_id", data.school_id).order("full_name");
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
@@ -194,10 +194,10 @@ export const upsertStaff = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const payload = { ...data, email: data.email || null };
     if (data.id) {
-      const { error } = await context.supabase.from("staff").update(payload).eq("id", data.id);
+      const { error } = await context.supabase.from("staff" as any).update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("staff").insert(payload);
+      const { error } = await context.supabase.from("staff" as any).insert(payload);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -207,7 +207,7 @@ export const deleteStaff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("staff").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("staff" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -219,7 +219,7 @@ export const listClasses = createServerFn({ method: "POST" })
     z.object({ school_id: uuid, academic_year_id: uuid.nullable().optional() }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    let q = context.supabase.from("classes")
+    let q = context.supabase.from("classes" as any)
       .select("*, staff:homeroom_teacher_id(id, full_name), academic_years(name)")
       .eq("school_id", data.school_id);
     if (data.academic_year_id) q = q.eq("academic_year_id", data.academic_year_id);
@@ -245,10 +245,10 @@ export const upsertClass = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (data.id) {
-      const { error } = await context.supabase.from("classes").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("classes" as any).update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("classes").insert(data);
+      const { error } = await context.supabase.from("classes" as any).insert(data);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -258,7 +258,7 @@ export const deleteClass = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("classes").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("classes" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -269,7 +269,7 @@ export const listClassSubjects = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ class_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("class_subjects")
+      .from("class_subjects" as any)
       .select("*, subjects(id, code, name, kkm), staff:teacher_id(id, full_name)")
       .eq("class_id", data.class_id);
     if (error) throw new Error(error.message);
@@ -289,10 +289,10 @@ export const upsertClassSubject = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (data.id) {
-      const { error } = await context.supabase.from("class_subjects").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("class_subjects" as any).update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("class_subjects").insert(data);
+      const { error } = await context.supabase.from("class_subjects" as any).insert(data);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -302,7 +302,7 @@ export const deleteClassSubject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("class_subjects").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("class_subjects" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -313,7 +313,7 @@ export const listSchedules = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ class_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("schedules")
+      .from("schedules" as any)
       .select("*, class_subjects!inner(id, class_id, subjects(name), staff:teacher_id(full_name))")
       .eq("class_subjects.class_id", data.class_id)
       .order("day_of_week").order("start_time");
@@ -335,10 +335,10 @@ export const upsertSchedule = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (data.id) {
-      const { error } = await context.supabase.from("schedules").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("schedules" as any).update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("schedules").insert(data);
+      const { error } = await context.supabase.from("schedules" as any).insert(data);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -348,7 +348,7 @@ export const deleteSchedule = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("schedules").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("schedules" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -359,7 +359,7 @@ export const listStudents = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ school_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("students")
+      .from("students" as any)
       .select("*, enrollments:student_enrollments(id, class_id, academic_year_id, status, classes(name, grade_level))")
       .eq("school_id", data.school_id)
       .order("full_name");
@@ -372,7 +372,7 @@ export const getStudent = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
-      .from("students")
+      .from("students" as any)
       .select("*, parents:student_parents(*), enrollments:student_enrollments(*, classes(name, grade_level), academic_years(name))")
       .eq("id", data.id).single();
     if (error) throw new Error(error.message);
@@ -426,15 +426,15 @@ export const enrollStudent = createServerFn({ method: "POST" })
     const s = { ...data.student, email: data.student.email || null };
     let studentId = data.student.id;
     if (studentId) {
-      const { error } = await context.supabase.from("students").update(s).eq("id", studentId);
+      const { error } = await context.supabase.from("students" as any).update(s).eq("id", studentId);
       if (error) throw new Error(error.message);
     } else {
-      const { data: ins, error } = await context.supabase.from("students").insert(s).select("id").single();
+      const { data: ins, error } = await context.supabase.from("students" as any).insert(s).select("id").single();
       if (error) throw new Error(error.message);
       studentId = ins.id;
     }
     if (data.class_id && data.academic_year_id && studentId) {
-      const { error } = await context.supabase.from("student_enrollments").upsert({
+      const { error } = await context.supabase.from("student_enrollments" as any).upsert({
         student_id: studentId,
         class_id: data.class_id,
         academic_year_id: data.academic_year_id,
@@ -445,7 +445,7 @@ export const enrollStudent = createServerFn({ method: "POST" })
     }
     if (data.parent && studentId) {
       const p = { ...data.parent, student_id: studentId, email: data.parent.email || null };
-      const { error } = await context.supabase.from("student_parents").insert(p);
+      const { error } = await context.supabase.from("student_parents" as any).insert(p);
       if (error) throw new Error(error.message);
     }
     return { ok: true, id: studentId };
@@ -455,7 +455,7 @@ export const deleteStudent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("students").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("students" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -469,14 +469,14 @@ export const listAttendance = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     // Get enrolled students in this class
     const { data: enr, error: e1 } = await context.supabase
-      .from("student_enrollments")
+      .from("student_enrollments" as any)
       .select("student_id, students(id, full_name, nisn)")
       .eq("class_id", data.class_id)
       .eq("status", "AKTIF");
     if (e1) throw new Error(e1.message);
 
     const { data: att, error: e2 } = await context.supabase
-      .from("attendance")
+      .from("attendance" as any)
       .select("*")
       .eq("class_id", data.class_id)
       .eq("attendance_date", data.date);
@@ -511,7 +511,7 @@ export const saveAttendance = createServerFn({ method: "POST" })
       recorded_by: context.userId,
     }));
     const { error } = await context.supabase
-      .from("attendance")
+      .from("attendance" as any)
       .upsert(rows, { onConflict: "class_id,student_id,attendance_date" });
     if (error) throw new Error(error.message);
     return { ok: true, count: rows.length };
@@ -525,15 +525,15 @@ export const listGrades = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { data: cs, error: e0 } = await context.supabase
-      .from("class_subjects").select("class_id, subjects(name, kkm)").eq("id", data.class_subject_id).single();
+      .from("class_subjects" as any).select("class_id, subjects(name, kkm)").eq("id", data.class_subject_id).single();
     if (e0) throw new Error(e0.message);
     const { data: enr, error: e1 } = await context.supabase
-      .from("student_enrollments")
+      .from("student_enrollments" as any)
       .select("student_id, students(id, full_name, nisn)")
       .eq("class_id", cs.class_id).eq("status", "AKTIF");
     if (e1) throw new Error(e1.message);
     const { data: grades, error: e2 } = await context.supabase
-      .from("grades").select("*")
+      .from("grades" as any).select("*")
       .eq("class_subject_id", data.class_subject_id).eq("term_id", data.term_id);
     if (e2) throw new Error(e2.message);
     return {
@@ -561,10 +561,10 @@ export const saveGrade = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const payload = { ...data, recorded_by: context.userId };
     if (data.id) {
-      const { error } = await context.supabase.from("grades").update(payload).eq("id", data.id);
+      const { error } = await context.supabase.from("grades" as any).update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("grades").insert(payload);
+      const { error } = await context.supabase.from("grades" as any).insert(payload);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -574,7 +574,7 @@ export const deleteGrade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("grades").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("grades" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -599,7 +599,7 @@ export const bulkImportClasses = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { data: staff } = await context.supabase
-      .from("staff").select("id, full_name").eq("school_id", data.school_id);
+      .from("staff" as any).select("id, full_name").eq("school_id", data.school_id);
     const teacherByName = new Map<string, string>();
     (staff ?? []).forEach((s: any) => teacherByName.set(s.full_name.toLowerCase().trim(), s.id));
 
@@ -616,7 +616,7 @@ export const bulkImportClasses = createServerFn({ method: "POST" })
       status: "ACTIVE" as const,
     }));
     const { error, count } = await context.supabase
-      .from("classes").insert(payload, { count: "exact" });
+      .from("classes" as any).insert(payload, { count: "exact" });
     if (error) throw new Error(error.message);
     return { ok: true, inserted: count ?? payload.length };
   });
@@ -652,7 +652,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
     const classByName = new Map<string, string>();
     if (data.academic_year_id) {
       const { data: cls } = await context.supabase
-        .from("classes").select("id, name")
+        .from("classes" as any).select("id, name")
         .eq("school_id", data.school_id)
         .eq("academic_year_id", data.academic_year_id);
       (cls ?? []).forEach((c: any) => classByName.set(c.name.toLowerCase().trim(), c.id));
@@ -663,7 +663,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
       const r = data.rows[i];
       try {
         const { data: ins, error } = await context.supabase
-          .from("students").insert({
+          .from("students" as any).insert({
             foundation_id: data.foundation_id,
             school_id: data.school_id,
             nisn: r.nisn || null, nis: r.nis || null,
@@ -677,14 +677,14 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
         if (r.class_name && data.academic_year_id) {
           const classId = classByName.get(r.class_name.toLowerCase().trim());
           if (classId) {
-            await context.supabase.from("student_enrollments").insert({
+            await context.supabase.from("student_enrollments" as any).insert({
               student_id: ins.id, class_id: classId,
               academic_year_id: data.academic_year_id, status: "AKTIF",
             });
           }
         }
         if (r.parent_name) {
-          await context.supabase.from("student_parents").insert({
+          await context.supabase.from("student_parents" as any).insert({
             student_id: ins.id,
             relation: r.parent_relation ?? "WALI",
             full_name: r.parent_name, phone: r.parent_phone || null,
@@ -707,26 +707,26 @@ export const getGradeReport = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { data: klass, error: ek } = await context.supabase
-      .from("classes")
+      .from("classes" as any)
       .select("id, name, grade_level, room, school_id, academic_year_id, staff:homeroom_teacher_id(full_name), academic_years(name), schools(name)")
       .eq("id", data.class_id).single();
     if (ek) throw new Error(ek.message);
     const { data: terms } = await context.supabase
-      .from("academic_terms").select("id, name, ordinal")
+      .from("academic_terms" as any).select("id, name, ordinal")
       .eq("academic_year_id", data.academic_year_id).order("ordinal");
     const { data: cs } = await context.supabase
-      .from("class_subjects")
+      .from("class_subjects" as any)
       .select("id, subjects(id, code, name, kkm), staff:teacher_id(full_name)")
       .eq("class_id", data.class_id);
     const { data: enr } = await context.supabase
-      .from("student_enrollments")
+      .from("student_enrollments" as any)
       .select("roll_number, students(id, full_name, nisn, nis)")
       .eq("class_id", data.class_id)
       .eq("academic_year_id", data.academic_year_id)
       .eq("status", "AKTIF");
     const csIds = (cs ?? []).map((x: any) => x.id);
     const gradesRes = csIds.length
-      ? await context.supabase.from("grades")
+      ? await context.supabase.from("grades" as any)
           .select("class_subject_id, student_id, term_id, score, weight")
           .in("class_subject_id", csIds)
       : { data: [] as any[] };
