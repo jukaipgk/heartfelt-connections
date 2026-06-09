@@ -13,7 +13,7 @@ export const listFeeCategories = createServerFn({ method: "POST" })
     const { data: rows, error } = await context.supabase
       .from("fee_categories").select("*").eq("school_id", data.school_id).order("name");
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertFeeCategory = createServerFn({ method: "POST" })
@@ -100,7 +100,7 @@ export const listFeePlans = createServerFn({ method: "POST" })
       .select("*, fee_plan_items(*, fee_categories(name)), academic_years(name)")
       .eq("school_id", data.school_id).order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const upsertFeePlan = createServerFn({ method: "POST" })
@@ -170,7 +170,7 @@ export const listInvoices = createServerFn({ method: "POST" })
     if (data.to) q = q.lte("issue_date", data.to);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 async function nextSeq(supabase: any, table: string, school_id: string, col: string, prefix: string) {
@@ -300,7 +300,7 @@ export const listPayments = createServerFn({ method: "POST" })
     if (data.to) q = q.lte("paid_at", data.to);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const recordPayment = createServerFn({ method: "POST" })
@@ -423,7 +423,7 @@ export const listCashTransactions = createServerFn({ method: "POST" })
     if (data.to) q = q.lte("occurred_at", data.to);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 export const createCashTransaction = createServerFn({ method: "POST" })
@@ -485,7 +485,7 @@ export const listJournalEntries = createServerFn({ method: "POST" })
     if (data.to) q = q.lte("entry_date", data.to);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return (rows ?? []) as any[];
   });
 
 // ============ REPORT ============
