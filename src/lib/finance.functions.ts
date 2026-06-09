@@ -315,10 +315,21 @@ export const recordPayment = createServerFn({ method: "POST" })
     reference: z.string().max(120).optional().nullable(),
     paid_at: z.string(),
     notes: z.string().max(500).optional().nullable(),
+    client_request_id: z.string().min(8).max(80).optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
-    // load cash account name
+
+    // IDEMPOTENCY: short-circuit if this client_request_id was already processed
+    if (data.client_request_id) {
+      const { data: dup } = await sb.from("payments")
+        .select("id, payment_no")
+        .eq("school_id", data.school_id)
+        .eq("client_request_id", data.client_request_id)
+        .maybeSingle();
+      if (dup) return { ok: true, id: dup.id, payment_no: dup.payment_no, duplicate: true };
+    }
+
     const { data: acc, error: ae } = await sb.from("cash_accounts")
       .select("name, type").eq("id", data.cash_account_id).single();
     if (ae || !acc) throw new Error("Akun kas tidak ditemukan");
@@ -326,7 +337,6 @@ export const recordPayment = createServerFn({ method: "POST" })
     const payment_no = await nextSeq(sb, "payments", data.school_id, "payment_no", "PAY-");
     const entry_no = await nextSeq(sb, "journal_entries", data.school_id, "entry_no", "JRN-");
 
-    // create journal: Dr Kas/Bank, Cr Pendapatan SPP
     const { data: je, error: jee } = await sb.from("journal_entries").insert({
       school_id: data.school_id,
       entry_no, entry_date: data.paid_at,
@@ -336,10 +346,11 @@ export const recordPayment = createServerFn({ method: "POST" })
     if (jee) throw new Error(jee.message);
     const accCode = acc.type === "BANK" ? "1-1200" : "1-1100";
     const accName = acc.type === "BANK" ? `Bank — ${acc.name}` : `Kas — ${acc.name}`;
-    await sb.from("journal_lines").insert([
+    const { error: jle } = await sb.from("journal_lines").insert([
       { journal_entry_id: je!.id, account_code: accCode, account_name: accName, debit: data.amount, credit: 0 },
       { journal_entry_id: je!.id, account_code: "4-1100", account_name: "Pendapatan SPP", debit: 0, credit: data.amount },
     ]);
+    if (jle) { await sb.from("journal_entries").delete().eq("id", je!.id); throw new Error(jle.message); }
 
     const { data: pay, error: pe } = await sb.from("payments").insert({
       school_id: data.school_id,
@@ -350,10 +361,22 @@ export const recordPayment = createServerFn({ method: "POST" })
       method: data.method, reference: data.reference ?? null,
       paid_at: data.paid_at, notes: data.notes ?? null,
       journal_entry_id: je!.id,
-    }).select("id").single();
-    if (pe) throw new Error(pe.message);
+      client_request_id: data.client_request_id ?? null,
+    }).select("id, payment_no").single();
+    if (pe) {
+      await sb.from("journal_lines").delete().eq("journal_entry_id", je!.id);
+      await sb.from("journal_entries").delete().eq("id", je!.id);
+      // race: another concurrent request with the same client_request_id won the unique index
+      if (data.client_request_id) {
+        const { data: dup } = await sb.from("payments")
+          .select("id, payment_no").eq("school_id", data.school_id)
+          .eq("client_request_id", data.client_request_id).maybeSingle();
+        if (dup) return { ok: true, id: dup.id, payment_no: dup.payment_no, duplicate: true };
+      }
+      throw new Error(pe.message);
+    }
 
-    await sb.from("cash_transactions").insert({
+    const { error: cte } = await sb.from("cash_transactions").insert({
       school_id: data.school_id,
       cash_account_id: data.cash_account_id,
       kind: "IN", amount: data.amount,
@@ -363,6 +386,12 @@ export const recordPayment = createServerFn({ method: "POST" })
       payment_id: pay!.id,
       journal_entry_id: je!.id,
     });
+    if (cte && !/duplicate key/i.test(cte.message)) {
+      await sb.from("payments").delete().eq("id", pay!.id);
+      await sb.from("journal_lines").delete().eq("journal_entry_id", je!.id);
+      await sb.from("journal_entries").delete().eq("id", je!.id);
+      throw new Error(cte.message);
+    }
 
     if (data.invoice_id) {
       const { data: inv } = await sb.from("invoices").select("total_amount, paid_amount")
@@ -375,7 +404,7 @@ export const recordPayment = createServerFn({ method: "POST" })
           .eq("id", data.invoice_id);
       }
     }
-    return { ok: true, id: pay!.id, payment_no };
+    return { ok: true, id: pay!.id, payment_no: pay!.payment_no, duplicate: false };
   });
 
 // ============ CASH TRANSACTIONS (manual) ============
