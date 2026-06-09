@@ -35,7 +35,7 @@ export const listFoundations = createServerFn({ method: "GET" })
       .select("*")
       .order("name");
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []) as any[];
   });
 
 const foundationInput = z.object({
@@ -92,7 +92,7 @@ export const listSchools = createServerFn({ method: "GET" })
       .select("*, foundations(name, code)")
       .order("name");
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []) as any[];
   });
 
 const schoolInput = z.object({
