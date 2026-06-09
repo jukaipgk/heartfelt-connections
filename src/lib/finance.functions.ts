@@ -526,7 +526,7 @@ export const getDashboardStats = createServerFn({ method: "POST" })
       sb.from("classes").select("id", { count: "exact", head: true })
         .eq("school_id", data.school_id).eq("status", "ACTIVE"),
       sb.from("academic_years").select("id").eq("school_id", data.school_id).eq("is_active", true).maybeSingle(),
-      sb.from("attendance").select("status").eq("school_id", data.school_id).eq("date", today),
+      sb.from("classes").select("id").eq("school_id", data.school_id),
       sb.from("invoices").select("total_amount, paid_amount, status").eq("school_id", data.school_id),
       sb.from("cash_accounts").select("id, opening_balance").eq("school_id", data.school_id),
     ]);
