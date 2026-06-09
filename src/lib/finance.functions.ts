@@ -11,7 +11,7 @@ export const listFeeCategories = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ school_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("fee_categories").select("*").eq("school_id", data.school_id).order("name");
+      .from("fee_categories" as any).select("*").eq("school_id", data.school_id).order("name");
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
@@ -27,10 +27,10 @@ export const upsertFeeCategory = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     if (data.id) {
-      const { error } = await context.supabase.from("fee_categories").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("fee_categories" as any).update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("fee_categories").insert(data);
+      const { error } = await context.supabase.from("fee_categories" as any).insert(data);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -40,7 +40,7 @@ export const deleteFeeCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("fee_categories").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("fee_categories" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -51,14 +51,14 @@ export const listCashAccounts = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ school_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("cash_accounts").select("*").eq("school_id", data.school_id).order("name");
+      .from("cash_accounts" as any).select("*").eq("school_id", data.school_id).order("name");
     if (error) throw new Error(error.message);
     // compute balance
     const ids = (rows ?? []).map((r: any) => r.id);
     const balances: Record<string, number> = {};
     if (ids.length) {
       const { data: tx } = await context.supabase
-        .from("cash_transactions").select("cash_account_id,kind,amount").in("cash_account_id", ids);
+        .from("cash_transactions" as any).select("cash_account_id,kind,amount").in("cash_account_id", ids);
       (tx ?? []).forEach((t: any) => {
         balances[t.cash_account_id] = (balances[t.cash_account_id] ?? 0) +
           (t.kind === "IN" ? Number(t.amount) : -Number(t.amount));
@@ -81,10 +81,10 @@ export const upsertCashAccount = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     if (data.id) {
-      const { error } = await context.supabase.from("cash_accounts").update(data).eq("id", data.id);
+      const { error } = await context.supabase.from("cash_accounts" as any).update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase.from("cash_accounts").insert(data);
+      const { error } = await context.supabase.from("cash_accounts" as any).insert(data);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -96,7 +96,7 @@ export const listFeePlans = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ school_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
-      .from("fee_plans")
+      .from("fee_plans" as any)
       .select("*, fee_plan_items(*, fee_categories(name)), academic_years(name)")
       .eq("school_id", data.school_id).order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -123,16 +123,16 @@ export const upsertFeePlan = createServerFn({ method: "POST" })
     const { items, id, ...header } = data;
     let planId = id;
     if (planId) {
-      const { error } = await context.supabase.from("fee_plans").update(header).eq("id", planId);
+      const { error } = await context.supabase.from("fee_plans" as any).update(header).eq("id", planId);
       if (error) throw new Error(error.message);
-      await context.supabase.from("fee_plan_items").delete().eq("fee_plan_id", planId);
+      await context.supabase.from("fee_plan_items" as any).delete().eq("fee_plan_id", planId);
     } else {
-      const { data: ins, error } = await context.supabase.from("fee_plans").insert(header).select("id").single();
+      const { data: ins, error } = await context.supabase.from("fee_plans" as any).insert(header).select("id").single();
       if (error) throw new Error(error.message);
       planId = ins!.id;
     }
     if (items.length) {
-      const { error } = await context.supabase.from("fee_plan_items")
+      const { error } = await context.supabase.from("fee_plan_items" as any)
         .insert(items.map((it) => ({ ...it, fee_plan_id: planId })));
       if (error) throw new Error(error.message);
     }
@@ -143,7 +143,7 @@ export const deleteFeePlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("fee_plans").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("fee_plans" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -160,7 +160,7 @@ export const listInvoices = createServerFn({ method: "POST" })
     to: z.string().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    let q = context.supabase.from("invoices")
+    let q = context.supabase.from("invoices" as any)
       .select("*, students(full_name, nisn, nis), invoice_items(*)")
       .eq("school_id", data.school_id).order("issue_date", { ascending: false }).limit(500);
     if (data.status) q = q.eq("status", data.status);
@@ -199,14 +199,14 @@ export const createInvoice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const total = data.items.reduce((s, i) => s + Number(i.amount), 0);
     const invoice_no = await nextSeq(context.supabase, "invoices", data.school_id, "invoice_no", "INV-");
-    const { data: ins, error } = await context.supabase.from("invoices").insert({
+    const { data: ins, error } = await context.supabase.from("invoices" as any).insert({
       school_id: data.school_id, student_id: data.student_id,
       academic_year_id: data.academic_year_id ?? null,
       invoice_no, period_label: data.period_label ?? null,
       due_date: data.due_date, total_amount: total, notes: data.notes ?? null,
     }).select("id").single();
     if (error) throw new Error(error.message);
-    const { error: e2 } = await context.supabase.from("invoice_items")
+    const { error: e2 } = await context.supabase.from("invoice_items" as any)
       .insert(data.items.map((it) => ({ ...it, invoice_id: ins!.id })));
     if (e2) throw new Error(e2.message);
     return { ok: true, id: ins!.id, invoice_no };
@@ -222,12 +222,12 @@ export const generateInvoicesFromPlan = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: plan, error: pe } = await context.supabase
-      .from("fee_plans").select("*, fee_plan_items(*, fee_categories(name))")
+      .from("fee_plans" as any).select("*, fee_plan_items(*, fee_categories(name))")
       .eq("id", data.fee_plan_id).single();
     if (pe || !plan) throw new Error(pe?.message ?? "Plan tidak ditemukan");
 
     // find students enrolled AKTIF in classes of this academic year (and grade if set)
-    let cq = context.supabase.from("classes").select("id, grade_level")
+    let cq = context.supabase.from("classes" as any).select("id, grade_level")
       .eq("school_id", data.school_id).eq("academic_year_id", plan.academic_year_id);
     if (plan.grade_level != null) cq = cq.eq("grade_level", plan.grade_level);
     const { data: classes, error: ce } = await cq;
@@ -236,14 +236,14 @@ export const generateInvoicesFromPlan = createServerFn({ method: "POST" })
     if (classIds.length === 0) return { ok: true, created: 0, skipped: 0 };
 
     const { data: enrolls, error: ee } = await context.supabase
-      .from("student_enrollments").select("student_id")
+      .from("student_enrollments" as any).select("student_id")
       .in("class_id", classIds).eq("status", "AKTIF");
     if (ee) throw new Error(ee.message);
     const studentIds = Array.from(new Set((enrolls ?? []).map((e: any) => e.student_id)));
     if (studentIds.length === 0) return { ok: true, created: 0, skipped: 0 };
 
     // skip students that already have invoice for this period
-    const { data: existing } = await context.supabase.from("invoices")
+    const { data: existing } = await context.supabase.from("invoices" as any)
       .select("student_id").eq("school_id", data.school_id)
       .eq("period_label", data.period_label).in("student_id", studentIds);
     const skip = new Set((existing ?? []).map((e: any) => e.student_id));
@@ -255,7 +255,7 @@ export const generateInvoicesFromPlan = createServerFn({ method: "POST" })
     for (const sid of studentIds) {
       if (skip.has(sid)) continue;
       const invoice_no = await nextSeq(context.supabase, "invoices", data.school_id, "invoice_no", "INV-");
-      const { data: inv, error } = await context.supabase.from("invoices").insert({
+      const { data: inv, error } = await context.supabase.from("invoices" as any).insert({
         school_id: data.school_id, student_id: sid,
         academic_year_id: plan.academic_year_id,
         invoice_no, period_label: data.period_label,
@@ -263,7 +263,7 @@ export const generateInvoicesFromPlan = createServerFn({ method: "POST" })
         notes: `Auto dari paket: ${plan.name}`,
       }).select("id").single();
       if (error) continue;
-      await context.supabase.from("invoice_items").insert(items.map((it: any) => ({
+      await context.supabase.from("invoice_items" as any).insert(items.map((it: any) => ({
         invoice_id: inv!.id,
         fee_category_id: it.fee_category_id,
         description: it.fee_categories?.name ?? "Item",
@@ -278,7 +278,7 @@ export const cancelInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("invoices")
+    const { error } = await context.supabase.from("invoices" as any)
       .update({ status: "CANCELLED" }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -293,7 +293,7 @@ export const listPayments = createServerFn({ method: "POST" })
     to: z.string().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    let q = context.supabase.from("payments")
+    let q = context.supabase.from("payments" as any)
       .select("*, invoices(invoice_no, period_label), students(full_name), cash_accounts(name)")
       .eq("school_id", data.school_id).order("paid_at", { ascending: false }).limit(500);
     if (data.from) q = q.gte("paid_at", data.from);
@@ -322,7 +322,7 @@ export const recordPayment = createServerFn({ method: "POST" })
 
     // IDEMPOTENCY: short-circuit if this client_request_id was already processed
     if (data.client_request_id) {
-      const { data: dup } = await sb.from("payments")
+      const { data: dup } = await sb.from("payments" as any)
         .select("id, payment_no")
         .eq("school_id", data.school_id)
         .eq("client_request_id", data.client_request_id)
@@ -330,14 +330,14 @@ export const recordPayment = createServerFn({ method: "POST" })
       if (dup) return { ok: true, id: dup.id, payment_no: dup.payment_no, duplicate: true };
     }
 
-    const { data: acc, error: ae } = await sb.from("cash_accounts")
+    const { data: acc, error: ae } = await sb.from("cash_accounts" as any)
       .select("name, type").eq("id", data.cash_account_id).single();
     if (ae || !acc) throw new Error("Akun kas tidak ditemukan");
 
     const payment_no = await nextSeq(sb, "payments", data.school_id, "payment_no", "PAY-");
     const entry_no = await nextSeq(sb, "journal_entries", data.school_id, "entry_no", "JRN-");
 
-    const { data: je, error: jee } = await sb.from("journal_entries").insert({
+    const { data: je, error: jee } = await sb.from("journal_entries" as any).insert({
       school_id: data.school_id,
       entry_no, entry_date: data.paid_at,
       description: `Penerimaan pembayaran ${payment_no}`,
@@ -346,13 +346,13 @@ export const recordPayment = createServerFn({ method: "POST" })
     if (jee) throw new Error(jee.message);
     const accCode = acc.type === "BANK" ? "1-1200" : "1-1100";
     const accName = acc.type === "BANK" ? `Bank — ${acc.name}` : `Kas — ${acc.name}`;
-    const { error: jle } = await sb.from("journal_lines").insert([
+    const { error: jle } = await sb.from("journal_lines" as any).insert([
       { journal_entry_id: je!.id, account_code: accCode, account_name: accName, debit: data.amount, credit: 0 },
       { journal_entry_id: je!.id, account_code: "4-1100", account_name: "Pendapatan SPP", debit: 0, credit: data.amount },
     ]);
-    if (jle) { await sb.from("journal_entries").delete().eq("id", je!.id); throw new Error(jle.message); }
+    if (jle) { await sb.from("journal_entries" as any).delete().eq("id", je!.id); throw new Error(jle.message); }
 
-    const { data: pay, error: pe } = await sb.from("payments").insert({
+    const { data: pay, error: pe } = await sb.from("payments" as any).insert({
       school_id: data.school_id,
       invoice_id: data.invoice_id ?? null,
       student_id: data.student_id ?? null,
@@ -364,11 +364,11 @@ export const recordPayment = createServerFn({ method: "POST" })
       client_request_id: data.client_request_id ?? null,
     }).select("id, payment_no").single();
     if (pe) {
-      await sb.from("journal_lines").delete().eq("journal_entry_id", je!.id);
-      await sb.from("journal_entries").delete().eq("id", je!.id);
+      await sb.from("journal_lines" as any).delete().eq("journal_entry_id", je!.id);
+      await sb.from("journal_entries" as any).delete().eq("id", je!.id);
       // race: another concurrent request with the same client_request_id won the unique index
       if (data.client_request_id) {
-        const { data: dup } = await sb.from("payments")
+        const { data: dup } = await sb.from("payments" as any)
           .select("id, payment_no").eq("school_id", data.school_id)
           .eq("client_request_id", data.client_request_id).maybeSingle();
         if (dup) return { ok: true, id: dup.id, payment_no: dup.payment_no, duplicate: true };
@@ -376,7 +376,7 @@ export const recordPayment = createServerFn({ method: "POST" })
       throw new Error(pe.message);
     }
 
-    const { error: cte } = await sb.from("cash_transactions").insert({
+    const { error: cte } = await sb.from("cash_transactions" as any).insert({
       school_id: data.school_id,
       cash_account_id: data.cash_account_id,
       kind: "IN", amount: data.amount,
@@ -387,20 +387,20 @@ export const recordPayment = createServerFn({ method: "POST" })
       journal_entry_id: je!.id,
     });
     if (cte && !/duplicate key/i.test(cte.message)) {
-      await sb.from("payments").delete().eq("id", pay!.id);
-      await sb.from("journal_lines").delete().eq("journal_entry_id", je!.id);
-      await sb.from("journal_entries").delete().eq("id", je!.id);
+      await sb.from("payments" as any).delete().eq("id", pay!.id);
+      await sb.from("journal_lines" as any).delete().eq("journal_entry_id", je!.id);
+      await sb.from("journal_entries" as any).delete().eq("id", je!.id);
       throw new Error(cte.message);
     }
 
     if (data.invoice_id) {
-      const { data: inv } = await sb.from("invoices").select("total_amount, paid_amount")
+      const { data: inv } = await sb.from("invoices" as any).select("total_amount, paid_amount")
         .eq("id", data.invoice_id).single();
       if (inv) {
         const newPaid = Number(inv.paid_amount) + Number(data.amount);
         const status = newPaid >= Number(inv.total_amount) ? "PAID"
           : newPaid > 0 ? "PARTIAL" : "UNPAID";
-        await sb.from("invoices").update({ paid_amount: newPaid, status })
+        await sb.from("invoices" as any).update({ paid_amount: newPaid, status })
           .eq("id", data.invoice_id);
       }
     }
@@ -416,7 +416,7 @@ export const listCashTransactions = createServerFn({ method: "POST" })
     to: z.string().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    let q = context.supabase.from("cash_transactions")
+    let q = context.supabase.from("cash_transactions" as any)
       .select("*, cash_accounts(name, type)").eq("school_id", data.school_id)
       .order("occurred_at", { ascending: false }).limit(500);
     if (data.from) q = q.gte("occurred_at", data.from);
@@ -439,30 +439,30 @@ export const createCashTransaction = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
-    const { data: acc } = await sb.from("cash_accounts").select("name, type").eq("id", data.cash_account_id).single();
+    const { data: acc } = await sb.from("cash_accounts" as any).select("name, type").eq("id", data.cash_account_id).single();
     const entry_no = await nextSeq(sb, "journal_entries", data.school_id, "entry_no", "JRN-");
     const accCode = acc?.type === "BANK" ? "1-1200" : "1-1100";
     const accName = `${acc?.type === "BANK" ? "Bank" : "Kas"} — ${acc?.name ?? ""}`;
     const counterCode = data.kind === "IN" ? "4-9000" : "5-9000";
     const counterName = data.kind === "IN" ? `Pendapatan Lain — ${data.category ?? "Umum"}` : `Beban — ${data.category ?? "Umum"}`;
 
-    const { data: je } = await sb.from("journal_entries").insert({
+    const { data: je } = await sb.from("journal_entries" as any).insert({
       school_id: data.school_id, entry_no, entry_date: data.occurred_at,
       description: data.description, source: "CASH",
     }).select("id").single();
     if (data.kind === "IN") {
-      await sb.from("journal_lines").insert([
+      await sb.from("journal_lines" as any).insert([
         { journal_entry_id: je!.id, account_code: accCode, account_name: accName, debit: data.amount, credit: 0 },
         { journal_entry_id: je!.id, account_code: counterCode, account_name: counterName, debit: 0, credit: data.amount },
       ]);
     } else {
-      await sb.from("journal_lines").insert([
+      await sb.from("journal_lines" as any).insert([
         { journal_entry_id: je!.id, account_code: counterCode, account_name: counterName, debit: data.amount, credit: 0 },
         { journal_entry_id: je!.id, account_code: accCode, account_name: accName, debit: 0, credit: data.amount },
       ]);
     }
 
-    const { error } = await sb.from("cash_transactions").insert({
+    const { error } = await sb.from("cash_transactions" as any).insert({
       ...data, journal_entry_id: je!.id,
     });
     if (error) throw new Error(error.message);
@@ -478,7 +478,7 @@ export const listJournalEntries = createServerFn({ method: "POST" })
     to: z.string().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    let q = context.supabase.from("journal_entries")
+    let q = context.supabase.from("journal_entries" as any)
       .select("*, journal_lines(*)").eq("school_id", data.school_id)
       .order("entry_date", { ascending: false }).limit(500);
     if (data.from) q = q.gte("entry_date", data.from);
@@ -497,13 +497,13 @@ export const getFinanceReport = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
     const [inv, pay, ctx, je] = await Promise.all([
-      sb.from("invoices").select("total_amount, paid_amount, status, issue_date")
+      sb.from("invoices" as any).select("total_amount, paid_amount, status, issue_date")
         .eq("school_id", data.school_id).gte("issue_date", data.from).lte("issue_date", data.to),
-      sb.from("payments").select("amount, method, paid_at")
+      sb.from("payments" as any).select("amount, method, paid_at")
         .eq("school_id", data.school_id).gte("paid_at", data.from).lte("paid_at", data.to),
-      sb.from("cash_transactions").select("kind, amount, occurred_at")
+      sb.from("cash_transactions" as any).select("kind, amount, occurred_at")
         .eq("school_id", data.school_id).gte("occurred_at", data.from).lte("occurred_at", data.to),
-      sb.from("journal_entries").select("id, journal_lines(debit, credit, account_code, account_name)")
+      sb.from("journal_entries" as any).select("id, journal_lines(debit, credit, account_code, account_name)")
         .eq("school_id", data.school_id).gte("entry_date", data.from).lte("entry_date", data.to),
     ]);
 
@@ -548,22 +548,22 @@ export const getDashboardStats = createServerFn({ method: "POST" })
     const today = new Date().toISOString().slice(0, 10);
 
     const [students, staff, classesCount, ay, classRows, invs, accs] = await Promise.all([
-      sb.from("students").select("id", { count: "exact", head: true })
+      sb.from("students" as any).select("id", { count: "exact", head: true })
         .eq("school_id", data.school_id).eq("status", "AKTIF"),
-      sb.from("staff").select("id", { count: "exact", head: true })
+      sb.from("staff" as any).select("id", { count: "exact", head: true })
         .eq("school_id", data.school_id).eq("status", "ACTIVE"),
-      sb.from("classes").select("id", { count: "exact", head: true })
+      sb.from("classes" as any).select("id", { count: "exact", head: true })
         .eq("school_id", data.school_id).eq("status", "ACTIVE"),
-      sb.from("academic_years").select("id").eq("school_id", data.school_id).eq("is_active", true).maybeSingle(),
-      sb.from("classes").select("id").eq("school_id", data.school_id),
-      sb.from("invoices").select("total_amount, paid_amount, status").eq("school_id", data.school_id),
-      sb.from("cash_accounts").select("id, opening_balance").eq("school_id", data.school_id),
+      sb.from("academic_years" as any).select("id").eq("school_id", data.school_id).eq("is_active", true).maybeSingle(),
+      sb.from("classes" as any).select("id").eq("school_id", data.school_id),
+      sb.from("invoices" as any).select("total_amount, paid_amount, status").eq("school_id", data.school_id),
+      sb.from("cash_accounts" as any).select("id, opening_balance").eq("school_id", data.school_id),
     ]);
 
     const classIds = (classRows.data ?? []).map((c: any) => c.id);
     let attRows: any[] = [];
     if (classIds.length) {
-      const { data: ar } = await sb.from("attendance").select("status")
+      const { data: ar } = await sb.from("attendance" as any).select("status")
         .in("class_id", classIds).eq("attendance_date", today);
       attRows = ar ?? [];
     }
@@ -577,7 +577,7 @@ export const getDashboardStats = createServerFn({ method: "POST" })
     let cashBalance = (accs.data ?? []).reduce((s: number, a: any) => s + Number(a.opening_balance), 0);
     const accIds = (accs.data ?? []).map((a: any) => a.id);
     if (accIds.length) {
-      const { data: tx } = await sb.from("cash_transactions")
+      const { data: tx } = await sb.from("cash_transactions" as any)
         .select("kind, amount").in("cash_account_id", accIds);
       (tx ?? []).forEach((t: any) => {
         cashBalance += t.kind === "IN" ? Number(t.amount) : -Number(t.amount);
@@ -607,11 +607,11 @@ export const previewGenerateInvoices = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
     const { data: plan, error: pe } = await sb
-      .from("fee_plans").select("*, fee_plan_items(amount, fee_categories(name))")
+      .from("fee_plans" as any).select("*, fee_plan_items(amount, fee_categories(name))")
       .eq("id", data.fee_plan_id).single();
     if (pe || !plan) throw new Error("Paket tidak ditemukan");
 
-    let cq = sb.from("classes").select("id, grade_level, name")
+    let cq = sb.from("classes" as any).select("id, grade_level, name")
       .eq("school_id", data.school_id).eq("academic_year_id", plan.academic_year_id);
     if (plan.grade_level != null) cq = cq.eq("grade_level", plan.grade_level);
     const { data: classes } = await cq;
@@ -619,7 +619,7 @@ export const previewGenerateInvoices = createServerFn({ method: "POST" })
 
     let students: any[] = [];
     if (classIds.length) {
-      const { data: enr } = await sb.from("student_enrollments")
+      const { data: enr } = await sb.from("student_enrollments" as any)
         .select("student_id, students(full_name, nis)")
         .in("class_id", classIds).eq("status", "AKTIF");
       const uniq = new Map<string, any>();
@@ -629,7 +629,7 @@ export const previewGenerateInvoices = createServerFn({ method: "POST" })
     const ids = students.map((s) => s.student_id);
     let already = new Set<string>();
     if (ids.length) {
-      const { data: ex } = await sb.from("invoices")
+      const { data: ex } = await sb.from("invoices" as any)
         .select("student_id").eq("school_id", data.school_id)
         .eq("period_label", data.period_label).in("student_id", ids);
       already = new Set((ex ?? []).map((e: any) => e.student_id));
@@ -671,16 +671,16 @@ export const reconcilePeriod = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
-    let invQ = sb.from("invoices")
+    let invQ = sb.from("invoices" as any)
       .select("id, status, total_amount, paid_amount, period_label, student_id, students(full_name)")
       .eq("school_id", data.school_id).gte("issue_date", data.from).lte("issue_date", data.to);
     if (data.period_label) invQ = invQ.eq("period_label", data.period_label);
     const [{ data: invs }, { data: pays }, { data: jes }] = await Promise.all([
       invQ,
-      sb.from("payments")
+      sb.from("payments" as any)
         .select("id, amount, journal_entry_id, invoice_id, payment_no, client_request_id, paid_at")
         .eq("school_id", data.school_id).gte("paid_at", data.from).lte("paid_at", data.to),
-      sb.from("journal_entries")
+      sb.from("journal_entries" as any)
         .select("id, entry_no, entry_date, source, journal_lines(debit, credit)")
         .eq("school_id", data.school_id).gte("entry_date", data.from).lte("entry_date", data.to),
     ]);

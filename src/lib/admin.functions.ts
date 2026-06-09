@@ -14,7 +14,7 @@ const statusEnum = z.enum(["ACTIVE","INACTIVE","ARCHIVED"]);
 async function assertAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
-    .from("user_roles")
+    .from("user_roles" as any)
     .select("role")
     .eq("user_id", userId)
     .in("role", ["SUPERADMIN", "FOUNDATION_ADMIN"]);
@@ -31,7 +31,7 @@ export const listFoundations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
-      .from("foundations")
+      .from("foundations" as any)
       .select("*")
       .order("name");
     if (error) throw new Error(error.message);
@@ -62,10 +62,10 @@ export const upsertFoundation = createServerFn({ method: "POST" })
     const payload = { ...data, email: data.email || null };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.id) {
-      const { error } = await supabaseAdmin.from("foundations").update(payload).eq("id", data.id);
+      const { error } = await supabaseAdmin.from("foundations" as any).update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await supabaseAdmin.from("foundations").insert(payload);
+      const { error } = await supabaseAdmin.from("foundations" as any).insert(payload);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -78,7 +78,7 @@ export const deleteFoundation = createServerFn({ method: "POST" })
     const { isSuper } = await assertAdmin(context.userId);
     if (!isSuper) throw new Error("Forbidden: hanya SUPERADMIN dapat menghapus yayasan");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("foundations").delete().eq("id", data.id);
+    const { error } = await supabaseAdmin.from("foundations" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -88,7 +88,7 @@ export const listSchools = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
-      .from("schools")
+      .from("schools" as any)
       .select("*, foundations(name, code)")
       .order("name");
     if (error) throw new Error(error.message);
@@ -120,10 +120,10 @@ export const upsertSchool = createServerFn({ method: "POST" })
     const payload = { ...data, email: data.email || null };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.id) {
-      const { error } = await supabaseAdmin.from("schools").update(payload).eq("id", data.id);
+      const { error } = await supabaseAdmin.from("schools" as any).update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await supabaseAdmin.from("schools").insert(payload);
+      const { error } = await supabaseAdmin.from("schools" as any).insert(payload);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -135,7 +135,7 @@ export const deleteSchool = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("schools").delete().eq("id", data.id);
+    const { error } = await supabaseAdmin.from("schools" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -149,11 +149,11 @@ export const listUsers = createServerFn({ method: "GET" })
     const [{ data: profiles, error: pErr }, { data: roles, error: rErr }, { data: access, error: aErr }] =
       await Promise.all([
         supabaseAdmin
-          .from("profiles")
+          .from("profiles" as any)
           .select("id, full_name, email, phone, status, created_at, foundation_id")
           .order("created_at", { ascending: false }),
-        supabaseAdmin.from("user_roles").select("user_id, role, school_id, foundation_id"),
-        supabaseAdmin.from("user_school_access").select("user_id, school_id"),
+        supabaseAdmin.from("user_roles" as any).select("user_id, role, school_id, foundation_id"),
+        supabaseAdmin.from("user_school_access" as any).select("user_id, school_id"),
       ]);
     if (pErr) throw new Error(pErr.message);
     if (rErr) throw new Error(rErr.message);
@@ -183,7 +183,7 @@ export const assignRole = createServerFn({ method: "POST" })
     if (data.role === "SUPERADMIN" && !isSuper)
       throw new Error("Forbidden: hanya SUPERADMIN dapat menetapkan SUPERADMIN");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("user_roles").insert({
+    const { error } = await supabaseAdmin.from("user_roles" as any).insert({
       user_id: data.user_id,
       role: data.role,
       foundation_id: data.foundation_id ?? null,
@@ -204,7 +204,7 @@ export const revokeRole = createServerFn({ method: "POST" })
     if (data.role === "SUPERADMIN" && !isSuper)
       throw new Error("Forbidden: hanya SUPERADMIN dapat mencabut SUPERADMIN");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let q = supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).eq("role", data.role);
+    let q = supabaseAdmin.from("user_roles" as any).delete().eq("user_id", data.user_id).eq("role", data.role);
     q = data.school_id ? q.eq("school_id", data.school_id) : q.is("school_id", null);
     const { error } = await q;
     if (error) throw new Error(error.message);
@@ -220,13 +220,13 @@ export const setSchoolAccess = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error: delErr } = await supabaseAdmin
-      .from("user_school_access")
+      .from("user_school_access" as any)
       .delete()
       .eq("user_id", data.user_id);
     if (delErr) throw new Error(delErr.message);
     if (data.school_ids.length) {
       const rows = data.school_ids.map((sid) => ({ user_id: data.user_id, school_id: sid }));
-      const { error } = await supabaseAdmin.from("user_school_access").insert(rows);
+      const { error } = await supabaseAdmin.from("user_school_access" as any).insert(rows);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
@@ -243,7 +243,7 @@ export const listAuditLogs = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { data: rows, error, count } = await context.supabase
-      .from("audit_logs")
+      .from("audit_logs" as any)
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(data.offset, data.offset + data.limit - 1);
