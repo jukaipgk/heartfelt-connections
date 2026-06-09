@@ -21,6 +21,7 @@ import { Route as AuthenticatedSistemAuditRouteImport } from './routes/_authenti
 import { Route as AuthenticatedKeuanganTagihanRouteImport } from './routes/_authenticated/keuangan/tagihan'
 import { Route as AuthenticatedKeuanganPembayaranRouteImport } from './routes/_authenticated/keuangan/pembayaran'
 import { Route as AuthenticatedKeuanganKasBankRouteImport } from './routes/_authenticated/keuangan/kas-bank'
+import { Route as AuthenticatedAkuntansiLaporanRouteImport } from './routes/_authenticated/akuntansi/laporan'
 import { Route as AuthenticatedAkuntansiJurnalRouteImport } from './routes/_authenticated/akuntansi/jurnal'
 import { Route as AuthenticatedAkademikTahunAjaranRouteImport } from './routes/_authenticated/akademik/tahun-ajaran'
 import { Route as AuthenticatedAkademikSiswaRouteImport } from './routes/_authenticated/akademik/siswa'
@@ -97,6 +98,12 @@ const AuthenticatedKeuanganKasBankRoute =
   AuthenticatedKeuanganKasBankRouteImport.update({
     id: '/keuangan/kas-bank',
     path: '/keuangan/kas-bank',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAkuntansiLaporanRoute =
+  AuthenticatedAkuntansiLaporanRouteImport.update({
+    id: '/akuntansi/laporan',
+    path: '/akuntansi/laporan',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAkuntansiJurnalRoute =
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/akademik/siswa': typeof AuthenticatedAkademikSiswaRoute
   '/akademik/tahun-ajaran': typeof AuthenticatedAkademikTahunAjaranRoute
   '/akuntansi/jurnal': typeof AuthenticatedAkuntansiJurnalRoute
+  '/akuntansi/laporan': typeof AuthenticatedAkuntansiLaporanRoute
   '/keuangan/kas-bank': typeof AuthenticatedKeuanganKasBankRoute
   '/keuangan/pembayaran': typeof AuthenticatedKeuanganPembayaranRoute
   '/keuangan/tagihan': typeof AuthenticatedKeuanganTagihanRoute
@@ -206,6 +214,7 @@ export interface FileRoutesByTo {
   '/akademik/siswa': typeof AuthenticatedAkademikSiswaRoute
   '/akademik/tahun-ajaran': typeof AuthenticatedAkademikTahunAjaranRoute
   '/akuntansi/jurnal': typeof AuthenticatedAkuntansiJurnalRoute
+  '/akuntansi/laporan': typeof AuthenticatedAkuntansiLaporanRoute
   '/keuangan/kas-bank': typeof AuthenticatedKeuanganKasBankRoute
   '/keuangan/pembayaran': typeof AuthenticatedKeuanganPembayaranRoute
   '/keuangan/tagihan': typeof AuthenticatedKeuanganTagihanRoute
@@ -232,6 +241,7 @@ export interface FileRoutesById {
   '/_authenticated/akademik/siswa': typeof AuthenticatedAkademikSiswaRoute
   '/_authenticated/akademik/tahun-ajaran': typeof AuthenticatedAkademikTahunAjaranRoute
   '/_authenticated/akuntansi/jurnal': typeof AuthenticatedAkuntansiJurnalRoute
+  '/_authenticated/akuntansi/laporan': typeof AuthenticatedAkuntansiLaporanRoute
   '/_authenticated/keuangan/kas-bank': typeof AuthenticatedKeuanganKasBankRoute
   '/_authenticated/keuangan/pembayaran': typeof AuthenticatedKeuanganPembayaranRoute
   '/_authenticated/keuangan/tagihan': typeof AuthenticatedKeuanganTagihanRoute
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/akademik/siswa'
     | '/akademik/tahun-ajaran'
     | '/akuntansi/jurnal'
+    | '/akuntansi/laporan'
     | '/keuangan/kas-bank'
     | '/keuangan/pembayaran'
     | '/keuangan/tagihan'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/akademik/siswa'
     | '/akademik/tahun-ajaran'
     | '/akuntansi/jurnal'
+    | '/akuntansi/laporan'
     | '/keuangan/kas-bank'
     | '/keuangan/pembayaran'
     | '/keuangan/tagihan'
@@ -307,6 +319,7 @@ export interface FileRouteTypes {
     | '/_authenticated/akademik/siswa'
     | '/_authenticated/akademik/tahun-ajaran'
     | '/_authenticated/akuntansi/jurnal'
+    | '/_authenticated/akuntansi/laporan'
     | '/_authenticated/keuangan/kas-bank'
     | '/_authenticated/keuangan/pembayaran'
     | '/_authenticated/keuangan/tagihan'
@@ -408,6 +421,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKeuanganKasBankRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/akuntansi/laporan': {
+      id: '/_authenticated/akuntansi/laporan'
+      path: '/akuntansi/laporan'
+      fullPath: '/akuntansi/laporan'
+      preLoaderRoute: typeof AuthenticatedAkuntansiLaporanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/akuntansi/jurnal': {
       id: '/_authenticated/akuntansi/jurnal'
       path: '/akuntansi/jurnal'
@@ -502,6 +522,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAkademikSiswaRoute: typeof AuthenticatedAkademikSiswaRoute
   AuthenticatedAkademikTahunAjaranRoute: typeof AuthenticatedAkademikTahunAjaranRoute
   AuthenticatedAkuntansiJurnalRoute: typeof AuthenticatedAkuntansiJurnalRoute
+  AuthenticatedAkuntansiLaporanRoute: typeof AuthenticatedAkuntansiLaporanRoute
   AuthenticatedKeuanganKasBankRoute: typeof AuthenticatedKeuanganKasBankRoute
   AuthenticatedKeuanganPembayaranRoute: typeof AuthenticatedKeuanganPembayaranRoute
   AuthenticatedKeuanganTagihanRoute: typeof AuthenticatedKeuanganTagihanRoute
@@ -526,6 +547,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAkademikSiswaRoute: AuthenticatedAkademikSiswaRoute,
   AuthenticatedAkademikTahunAjaranRoute: AuthenticatedAkademikTahunAjaranRoute,
   AuthenticatedAkuntansiJurnalRoute: AuthenticatedAkuntansiJurnalRoute,
+  AuthenticatedAkuntansiLaporanRoute: AuthenticatedAkuntansiLaporanRoute,
   AuthenticatedKeuanganKasBankRoute: AuthenticatedKeuanganKasBankRoute,
   AuthenticatedKeuanganPembayaranRoute: AuthenticatedKeuanganPembayaranRoute,
   AuthenticatedKeuanganTagihanRoute: AuthenticatedKeuanganTagihanRoute,
