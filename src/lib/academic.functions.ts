@@ -484,8 +484,8 @@ export const listAttendance = createServerFn({ method: "POST" })
     if (e2) throw new Error(e2.message);
 
     return {
-      students: (enr ?? []).map((e) => e.students).filter(Boolean),
-      attendance: att ?? [],
+      students: (enr ?? []).map((e: any) => e.students).filter(Boolean) as any[],
+      attendance: (att ?? []) as any[],
     };
   });
 
