@@ -188,6 +188,8 @@ function ManageUserDialog({ user }: { user: UserRow }) {
         </DialogHeader>
 
         <div className="space-y-5">
+          <PresetRow userId={user.id} existingRoles={user.roles.map((r) => r.role)} onDone={refresh} />
+
           <div>
             <Label className="mb-2 block">Peran aktif</Label>
             <div className="flex flex-wrap gap-1.5 mb-3 min-h-[28px]">
